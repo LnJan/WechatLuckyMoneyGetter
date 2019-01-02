@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">微信红包工具</string>
+    <string name="watch_options">监视选项</string>
+    <string name="d">延迟0秒拆开红包</string>
+    <string name="watch_notifications">监视系统通知</string>
+    <string name="watch_notifications_hint">读取新消息通知中的红包提示并进入聊天页</string>
+    <string name="watch_list">监视聊天列表</string>
+    <string name="watch_list_hint">读取聊天列表中的红包提示并进入聊天页</string>
+    <string name="anti_block_options">防封号选项</string>
+    <string name="auto_open_packets">自动拆开红包</string>
+    <string name="open_with_delay">延时拆开红包</string>
+    <string name="open_self">拆开自己发的红包</string>
+    <string name="skip_phrases">屏蔽红包文字</string>
+    <string name="about">关于应用</string>
+    <string name="check_new_version">检查新版本</string>
+    <string name="check_new_hint">前往GitHub项目主页获取最新安装包</string>
+    <string name="help_and_feedback">帮助与反馈</string>
+    <string name="help_hint">前往GitHub项目主页提交issue</string>
+    <string name="labs">实验功能</string>
+    <string name="snatch_on_lockscreen">息屏抢红包</string>
+    <string name="snatch_on_lockscreen_hint">保持30分钟后台活跃,可能会极大增加电量消耗,请谨慎使用(该功能设置锁屏密码后无法解锁)</string>
+    <string name="service_state">开启插件</string>
+    <string name="pref_watch_exclude_words_summary">不拆开包含这些文字的红包(空格间隔)</string>
+    <string name="app_description">∠( ᐛ 」∠)_使用指南∠( ᐛ 」∠)_\n\n ○ 狠戳插件开关\n ○ 回到微信聊天\n ○ 坐等红包进账\n\n 遇到问题, 欢迎通过 GitHub Issue 反馈~\n https://github.com/geeeeeeeeek/WeChatLuckyMoney</string>
+    <string name="turn_on_error_toast">遇到一些问题,请手动打开系统设置>无障碍服务>微信红包(ฅ´ω`ฅ)</string>
+    <string name="turn_on_toast">点击「无障碍-微信红包工具」开启插件</string>
+    <string name="turn_off_toast">点击「无障碍-微信红包工具」关闭插件</string>
+    <string name="not_support_low_level">"Android 7.0以下暂不支持此功能"</string>
+    <string name="okey">好的</string>
+    <string name="donot_show">不再询问</string>
+    <string name="background_authority_info">请允许应用后台运行权限，否则红包服务可能会被系统终止</string>
+    <string name="background_authority_request">应用后台运行权限申请</string>
+    <string name="authority_request">应用权限申请</string>
+    <string name="authority_info">请允许以下权限以保证软件升级功能正常运行</string>
+    <string name="background_authority_tips">解除权限管理/省电策略中的后台限制</string>
+</resources>
