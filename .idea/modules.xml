@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/MyLuckyMoney.iml" filepath="$PROJECT_DIR$/MyLuckyMoney.iml" />
+      <module fileurl="file://$PROJECT_DIR$/WechatLuckyMoneyGetter.iml" filepath="$PROJECT_DIR$/WechatLuckyMoneyGetter.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary344/openCVLibrary344.iml" filepath="$PROJECT_DIR$/openCVLibrary344/openCVLibrary344.iml" />
     </modules>
