@@ -25,7 +25,7 @@
     3、如果需要使用息屏抢红包的功能可能会增加手机耗电量，请慎用
     
 ## 更新日志
-    完整的更新日志请见[VERSIONLOG](https://github.com/LnJan/WechatLuckyMoneyGetter/VERSIONLOG.md
+    完整的更新日志请见[VERSIONLOG](https://github.com/LnJan/WechatLuckyMoneyGetter/VERSIONLOG.md)
 ## 版权免责声明
 本项目源自小米去年秋季发布会时演示的[MIUI 7抢红包测试](https://github.com/XiaoMi/LuckyMoneyTool)和大神[geeeeeeeeek](https://github.com/geeeeeeeeek/WeChatLuckyMoney)的开源项目<br>
 插件可能会在一定程度上改变微信的交互方式。使用本项目中包含的代码及其生成物时，使用者自行承担随之而来的各种风险，包括但不限于“禁用红包功能”、“微信封号”。
