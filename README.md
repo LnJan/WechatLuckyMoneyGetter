@@ -31,4 +31,4 @@
 插件可能会在一定程度上改变微信的交互方式。使用本项目中包含的代码及其生成物时，使用者自行承担随之而来的各种风险，包括但不限于“禁用红包功能”、“微信封号”。
 
 ## 应用截图
-![软件截图](https://github.com/LnJan/WechatLuckyMoneyGetter/screenshot.jpg)
+![软件截图](https://github.com/LnJan/WechatLuckyMoneyGetter/blob/master/screenshot.jpg)
