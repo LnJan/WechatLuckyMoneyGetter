@@ -13,8 +13,10 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
+import com.shareder.ln_jan.wechatluckymoneygetter.activities.WebviewActivity;
 import com.shareder.ln_jan.wechatluckymoneygetter.global.MyTransparentDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
+import com.tencent.bugly.beta.Beta;
 
 /**
  * Created by Ln_Jan on 2018/11/8.
@@ -175,6 +177,28 @@ public class SettingPreferenceFragment extends PreferenceFragment implements Pre
         if (watchListPreference.isChecked()) {
             requestScreenShot();
         }
+
+        Preference issuePref = findPreference("pref_etc_issue");
+        issuePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+                Intent webViewIntent = new Intent(getActivity(), WebviewActivity.class);
+                webViewIntent.putExtra("title", "GitHub Issues");
+                webViewIntent.putExtra("url", getString(R.string.url_github_issues));
+                webViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(webViewIntent);
+                return false;
+            }
+        });
+
+        Preference updatePref=findPreference("pref_etc_check_update");
+        updatePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Beta.checkUpgrade(true,true);
+                return false;
+            }
+        });
+
     }
 
 }

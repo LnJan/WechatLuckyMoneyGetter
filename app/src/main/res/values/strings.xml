@@ -33,4 +33,7 @@
     <string name="authority_request">应用权限申请</string>
     <string name="authority_info">请允许以下权限以保证软件升级功能正常运行</string>
     <string name="background_authority_tips">解除权限管理/省电策略中的后台限制</string>
+    <string name="back_home">返回主页</string>
+    <string name="url_github_issues">https://github.com/LnJan/WechatLuckyMoneyGetter/issues</string>
+    <string name="url_github_releases">https://github.com/LnJan/WechatLuckyMoneyGetter/releases</string>
 </resources>
