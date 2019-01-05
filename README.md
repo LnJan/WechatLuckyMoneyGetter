@@ -25,7 +25,7 @@
     3、如果需要使用息屏抢红包的功能可能会增加手机耗电量，请慎用
 
 ## 技术实现
-    详情可浏览这篇文章[AccessibilityService+OpenCV实现微信新版本抢红包插件](https://www.jianshu.com/p/c269a1a1866b)
+[AccessibilityService+OpenCV实现微信新版本抢红包插件](https://www.jianshu.com/p/c269a1a1866b)文章中会有详细介绍
     
 ## 更新日志
 完整的更新日志请见[VERSIONLOG](https://github.com/LnJan/WechatLuckyMoneyGetter/blob/master/VERSIONLOG.md)
