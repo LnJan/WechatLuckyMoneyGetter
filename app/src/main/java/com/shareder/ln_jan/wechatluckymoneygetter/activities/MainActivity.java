@@ -7,6 +7,7 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -16,6 +17,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -88,6 +91,22 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
         FeatureDetectionManager.getInstance().createLuckyMoneyPicture();
 
         checkAuthority();
+
+        /*mImageView = findViewById(R.id.imv_show_cache);
+        mImageView.setImageBitmap(BitmapFactory.decodeFile(FeatureDetectionManager.getInstance().getMoneyPicPath()));
+        Button btnNext = findViewById(R.id.btn_next_pic);
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String str = getDirFileNameByIndex(getCacheDir().getAbsolutePath(), mIndex);
+                if(str==null){
+                    Toast.makeText(MainActivity.this,"没有图片了",Toast.LENGTH_SHORT).show();
+                }else{
+                    mImageView.setImageBitmap(BitmapFactory.decodeFile(str));
+                    mIndex++;
+                }
+            }
+        });*/
 
         //初始化bugly
         Bugly.init(getApplicationContext(), "2212e773ac", true);
@@ -270,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
 
         startActivity(intent);
 
-        Toast.makeText(this,getString(R.string.background_authority_tips),Toast.LENGTH_LONG).show();
+        Toast.makeText(this, getString(R.string.background_authority_tips), Toast.LENGTH_LONG).show();
     }
 
     /**

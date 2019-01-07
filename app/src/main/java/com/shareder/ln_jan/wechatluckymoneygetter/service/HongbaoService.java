@@ -31,6 +31,9 @@ import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
 
 import org.opencv.core.CvException;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,13 +68,12 @@ public class HongbaoService extends AccessibilityService {
     //private String prevActivityName = CHATTING_LAUNCHER_UI;
     private boolean mGlobalMutex = false;
     private boolean mPockeyOpenMutex = false;
-    private boolean isNormalScreen = true;
     private SharedPreferences mSharedPreferences;
     private HongbaoServiceHandler mHandler = new HongbaoServiceHandler(this);
-    private boolean isAutoClose = false;            //遇到超时页面需要返回时使用此标志位
     private PowerUtil mPowerUtil = null;
     private LockScreenReceiver mReceiver = null;
     private List<String> mSelfOpenList = null;
+    private int mPackeyTag = 0x00;
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
@@ -110,7 +112,6 @@ public class HongbaoService extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
-        isNormalScreen = checkScreenSizeIsNormal();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.mPowerUtil = new PowerUtil(this);
         this.mReceiver = new LockScreenReceiver(this);
@@ -152,21 +153,22 @@ public class HongbaoService extends AccessibilityService {
                 Log.e(TAG, "Recv_ui:AccessibilityNodeInfo null");
             }*/
             if (mSharedPreferences.getBoolean("pref_watch_chat", false)) {
+                if (mPackeyTag != 0x01) {
+                    return;
+                }
+                mPackeyTag = 0x02;
                 int delay = mSharedPreferences.getInt(SeekBarPreference.PREFERENCE_TAG, 0);
                 if (delay == 0x00) {
                     openPacket();
                 } else {
                     mHandler.sendEmptyMessageDelayed(HANDLER_POSTDELAY_OPEN, delay);
                 }
-                if (!isAutoClose) {
-                    isAutoClose = true;
-                    mHandler.sendEmptyMessageDelayed(HANDLER_CLOSE_PACKEY, delay + 1000);
-                }
+                mHandler.sendEmptyMessageDelayed(HANDLER_CLOSE_PACKEY, delay + 1000);
             }
         } else if (LUCKY_MONEY_DETAIL_UI.equals(currentActivityName)) {                        //红包详情页面
             if (currentActivityName.equals(currentNodeInfoName)) {
                 Log.e(TAG, "detail UI");
-                isAutoClose = false;
+                mPackeyTag = 0x00;
                 performGlobalAction(GLOBAL_ACTION_BACK);
             }
         }
@@ -255,10 +257,10 @@ public class HongbaoService extends AccessibilityService {
                     continue;
                 }
                 Bitmap bmSub = Bitmap.createBitmap(bmScreenShot, x, y, width, height);
-                //SaveBitmapToLocal(bmSub);
+                SaveBitmapToLocal(bmSub);
                 boolean b = false;
                 try {
-                    b = FeatureDetectionManager.getInstance().isPictureMatchLuckyMoney(bmSub, isNormalScreen);
+                    b = FeatureDetectionManager.getInstance().isPictureMatchLuckyMoney(bmSub, ScreenShotter.getInstance().isNormalScreen());
                 } catch (CvException ex) {
                     b = false;
                 }
@@ -273,7 +275,7 @@ public class HongbaoService extends AccessibilityService {
         return resultRect;
     }
 
-    /*private void SaveBitmapToLocal(Bitmap bmp) {
+    private void SaveBitmapToLocal(Bitmap bmp) {
         String strSavePath = getCacheDir().getAbsolutePath() + File.separator + java.util.UUID.randomUUID().toString() + ".jpg";
         try {
             File f = new File(strSavePath);
@@ -286,20 +288,6 @@ public class HongbaoService extends AccessibilityService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }*/
-
-    /**
-     * 检查屏幕尺寸是否16:9
-     * 某些18:9的全面屏手机会出现截屏位置偏移的问题
-     *
-     * @return
-     */
-    private boolean checkScreenSizeIsNormal() {
-        DisplayMetrics dm = new DisplayMetrics();
-        dm = getResources().getDisplayMetrics();
-        int screenWidth = dm.widthPixels;
-        int screenHeight = dm.heightPixels;
-        return screenHeight < screenWidth * 1.8;
     }
 
     private List<Rect> findNewsRectInScreen() {
@@ -313,9 +301,9 @@ public class HongbaoService extends AccessibilityService {
                     if (subChartInfo.getChildCount() > 0) {                                             //表示是未读消息，有可能有红包
                         Rect outputRect = new Rect();
                         subChartInfo.getBoundsInScreen(outputRect);
-                        if (!isNormalScreen) {
-                            outputRect.top -= 30;
-                            outputRect.bottom -= 30;
+                        if (!ScreenShotter.getInstance().isNormalScreen()) {
+                            outputRect.top -= 20;
+                            outputRect.bottom -= 20;
                         }
                         if (outputRect.height() == 0 || outputRect.width() == 0) {
                             continue;
@@ -414,6 +402,12 @@ public class HongbaoService extends AccessibilityService {
             if (openPackeyInfo != null) {
                 AccessibilityNodeInfo parentInfo = openPackeyInfo.getParent();
                 if (parentInfo != null) {
+                    if (mSharedPreferences.getBoolean("pref_watch_chat", false)) {
+                        if (mPackeyTag != 0x00) {
+                            return;
+                        }
+                        mPackeyTag = 0x01;
+                    }
                     parentInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 }
             }
@@ -472,6 +466,7 @@ public class HongbaoService extends AccessibilityService {
                             public void onCompleted(GestureDescription gestureDescription) {
                                 Log.e(TAG, "onCompleted");
                                 mPockeyOpenMutex = false;
+                                mPackeyTag = 0x03;
                                 super.onCompleted(gestureDescription);
                             }
 
@@ -479,6 +474,7 @@ public class HongbaoService extends AccessibilityService {
                             public void onCancelled(GestureDescription gestureDescription) {
                                 Log.e(TAG, "onCancelled");
                                 mPockeyOpenMutex = false;
+                                mPackeyTag = 0x03;
                                 super.onCancelled(gestureDescription);
                             }
                         }, null);
@@ -569,8 +565,8 @@ public class HongbaoService extends AccessibilityService {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case HANDLER_CLOSE_PACKEY:
-                    if (mRef.get().isAutoClose) {
-                        mRef.get().isAutoClose = false;
+                    if (mRef.get().mPackeyTag == 0x03) {
+                        mRef.get().mPackeyTag = 0x00;
                         mRef.get().performGlobalAction(GLOBAL_ACTION_BACK);
                     }
                     break;
