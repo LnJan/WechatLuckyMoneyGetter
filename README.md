@@ -23,6 +23,9 @@
     2、由于目前新版微信重写了聊天及列表页面的文本控件，故无法从AccessibilityService直接获取到文本信息，所以如需
     监控聊天列表页面，需提供本软件截屏权限。
     3、如果需要使用息屏抢红包的功能可能会增加手机耗电量，请慎用
+
+## 技术实现
+[AccessibilityService+OpenCV实现微信新版本抢红包插件](https://www.jianshu.com/p/c269a1a1866b)文章中会有详细介绍
     
 ## 更新日志
 完整的更新日志请见[VERSIONLOG](https://github.com/LnJan/WechatLuckyMoneyGetter/blob/master/VERSIONLOG.md)
