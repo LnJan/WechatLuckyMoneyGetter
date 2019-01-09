@@ -7,3 +7,6 @@
 /build
 /captures
 .externalNativeBuild
+/openCVLibrary344/build
+/app/release
+/app/build

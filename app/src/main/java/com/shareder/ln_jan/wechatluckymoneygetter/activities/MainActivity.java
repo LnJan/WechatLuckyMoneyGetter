@@ -7,23 +7,26 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.BitmapFactory;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.accessibility.AccessibilityManager;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
 import com.shareder.ln_jan.wechatluckymoneygetter.fragments.SettingPreferenceFragment;
+import com.shareder.ln_jan.wechatluckymoneygetter.global.AuthorDetailDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.global.MyTransparentDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
 import com.tencent.bugly.Bugly;
@@ -33,21 +36,22 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import me.weyye.hipermission.HiPermission;
-import me.weyye.hipermission.PermissionCallback;
-import me.weyye.hipermission.PermissionItem;
 
 public class MainActivity extends AppCompatActivity implements AccessibilityManager.AccessibilityStateChangeListener,
         View.OnClickListener {
     private static final String TAG = "MainActivity";
     private AccessibilityManager accessibilityManager;
     private Switch service_switch;
+    private MainActivityHandler mHandler = new MainActivityHandler(this);
     private static final String SHOWDIALOG_TAG = "NotShowPowerDialog";
+    private static final int HANDLER_REQUEST_AUTHOR = 0x01;
+    private static final int HANDLER_SHOW_POWER_DIALOG = 0x02;
+    private static final int REQUEST_AUTHOR_ID = 0xff;
     //private static final String mChannel1 = "system";
     //private static final int REQUEST_MEDIA_PROJECTION = 0x01;
     //private int mIndex = 0;
@@ -112,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
         Bugly.init(getApplicationContext(), "2212e773ac", true);
     }
 
-    private String getDirFileNameByIndex(String strDir, int index) {
+    /*private String getDirFileNameByIndex(String strDir, int index) {
         File f = new File(strDir);
         if (!f.exists()) {
             return null;
@@ -125,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
             return null;
         }
         return files[index].getAbsolutePath();
-    }
+    }*/
 
     @Override
     protected void onResume() {
@@ -163,6 +167,29 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
             default:
                 break;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_AUTHOR_ID) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    if (permissions[i].equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        builder.append("读写外存权限被拒绝！！\n");
+                    } else if (permissions[i].equals(Manifest.permission.READ_PHONE_STATE)) {
+                        builder.append("读取手机状态权限被拒绝！！\n");
+                    }
+                }
+            }
+            if (builder.length() > 0) {
+                builder.deleteCharAt(builder.length()-1);
+                Toast.makeText(this, builder.toString(), Toast.LENGTH_SHORT).show();
+            }
+            mHandler.sendEmptyMessage(HANDLER_SHOW_POWER_DIALOG);
+            return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /*public static String getChannelName() {
@@ -297,35 +324,68 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
      */
     private void checkAuthority() {
         if (Build.VERSION.SDK_INT >= 23) {
-            List<PermissionItem> permissonItems = new ArrayList<>();
-            permissonItems.add(new PermissionItem(Manifest.permission.READ_PHONE_STATE, "读取手机状态", R.drawable.permission_ic_phone));
-            permissonItems.add(new PermissionItem(Manifest.permission.WRITE_EXTERNAL_STORAGE, "读写外部存储", R.drawable.permission_ic_storage));
-            HiPermission.create(this).title(getString(R.string.authority_request))
-                    .permissions(permissonItems)
-                    .msg(getString(R.string.authority_info))
-                    .animStyle(R.style.PermissionAnimScale)
-                    .style(R.style.PermissionDefaultBlueStyle)
-                    .checkMutiPermission(new PermissionCallback() {
-                        @Override
-                        public void onClose() {
-                            openPowerStageyDialog();
-                        }
+            List<String> authorList = new ArrayList<>(2);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                authorList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                authorList.add(Manifest.permission.READ_PHONE_STATE);
+            }
+            if (!authorList.isEmpty()) {
+                AuthorDetailDialog dialog = new AuthorDetailDialog(this, R.style.Transparent);
+                final ArrayList<String> sendList = (ArrayList<String>) authorList;
+                dialog.setOnNextstepClickListener(new AuthorDetailDialog.OnNextstepClickListener() {
+                    @Override
+                    public void onClick() {
+                        Message msg = new Message();
+                        msg.what = HANDLER_REQUEST_AUTHOR;
+                        Bundle bundle = new Bundle();
+                        bundle.putStringArrayList("authors", sendList);
+                        msg.setData(bundle);
+                        mHandler.sendMessage(msg);
+                    }
+                });
+                dialog.show();
+            } else {
+                openPowerStageyDialog();
+            }
+        } else {
+            openPowerStageyDialog();
+        }
+    }
 
-                        @Override
-                        public void onFinish() {
-                            openPowerStageyDialog();
-                        }
+    static class MainActivityHandler extends Handler {
+        private WeakReference<MainActivity> mRefParent;
 
-                        @Override
-                        public void onDeny(String permission, int position) {
+        MainActivityHandler(MainActivity activity) {
+            mRefParent = new WeakReference<>(activity);
+        }
 
-                        }
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case HANDLER_REQUEST_AUTHOR:
+                    requestAuthor(msg.getData().getStringArrayList("authors"));
+                    break;
+                case HANDLER_SHOW_POWER_DIALOG:
+                    mRefParent.get().openPowerStageyDialog();
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
 
-                        @Override
-                        public void onGuarantee(String permission, int position) {
-
-                        }
-                    });
+        private void requestAuthor(ArrayList<String> lst) {
+            if (lst.isEmpty()) {
+                return;
+            }
+            String[] array = new String[lst.size()];
+            for (int i = 0; i < lst.size(); i++) {
+                array[i] = lst.get(i);
+            }
+            ActivityCompat.requestPermissions(mRefParent.get(), array, REQUEST_AUTHOR_ID);
         }
     }
 }

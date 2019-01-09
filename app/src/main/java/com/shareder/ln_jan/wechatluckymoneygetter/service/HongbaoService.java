@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -44,23 +46,39 @@ import java.util.regex.Pattern;
 
 /**
  * Created by Ln_Jan on 2018/11/14.
+ * 抢红包AccessibilityService服务
  */
 
 public class HongbaoService extends AccessibilityService {
     private static final String TAG = "HongbaoService";
+    /**
+     * 微信的包名
+     */
+    private static final String WECHAT_PACKAGENAME = "com.tencent.mm";
     private static final String CHATTING_LAUNCHER_UI = "com.tencent.mm.ui.LauncherUI";
     private static final String LUCKY_MONEY_RECV_UI = "com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyReceiveUI";
+    private static final String LUCKY_MONEY_RECV_UI_700 = "com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyNotHookReceiveUI";         //微信7.0.0拆红包页面
     private static final String LUCKY_MONEY_DETAIL_UI = "com.tencent.mm.plugin.luckymoney.ui.LuckyMoneyDetailUI";
     private static final String WECHAT_VIEWPAGER_LAYOUT = "com.tencent.mm.ui.mogic.WxViewPager";
     private static final String LIST_VIEW_NAME = "android.widget.ListView";
+    private static final String LINEARLAYOUT_NAME = "android.widget.LinearLayout";
     private static final String WECHAT_DETAILS_CH = "红包详情";
     private static final String WECHAT_BETTER_LUCK_CH = "手慢了";
     private static final String WECHAT_EXPIRES_CH = "已超过24小时";
     private static final String WECHAT_VIEW_SELF_CH = "查看红包";
     private static final String WECHAT_VIEW_OTHERS_CH = "领取红包";
     private static final String WECHAT_NOTIFICATION_TIP = "[微信红包]";
+    private static final String WECHAT_PACKEY_TIP = "微信红包";
     private static final String WECHAT_DISCOVER_TIP = "发现";
     private static final String WECHAT_COMMUNICATE_TIP = "通讯录";
+    /**
+     * 微信6.7.3版本的版本号
+     */
+    private static final int WX_673_VERCODE = 1360;
+    /**
+     * 微信7.0.0版本的版本号
+     */
+    private static final int WX_700_VERCODE = 1380;
     private static final int HANDLER_CLOSE_PACKEY = 0x01;
     private static final int HANDLER_POSTDELAY_OPEN = 0x02;           //延时打开红包
     private String currentActivityName = CHATTING_LAUNCHER_UI;
@@ -74,6 +92,7 @@ public class HongbaoService extends AccessibilityService {
     private LockScreenReceiver mReceiver = null;
     private List<String> mSelfOpenList = null;
     private int mPackeyTag = 0x00;
+    private int mWechatVersion = 0x00;                                  //微信版本
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
@@ -84,10 +103,13 @@ public class HongbaoService extends AccessibilityService {
             setCurrentActivityName(accessibilityEvent);
             switch (accessibilityEvent.getEventType()) {
                 case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
-                    handleNotificationMessage(accessibilityEvent);
+                    if (mSharedPreferences.getBoolean("pref_watch_notification", false)) {
+                        handleNotificationMessage(accessibilityEvent);
+                    }
                     break;
                 case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
+                    String tip = accessibilityEvent.getText().toString();
                     handleScreenMessage(accessibilityEvent);
                     break;
                 default:
@@ -120,6 +142,7 @@ public class HongbaoService extends AccessibilityService {
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         registerReceiver(this.mReceiver, intentFilter);
         mSelfOpenList = new ArrayList<>(20);
+        mWechatVersion = getWechatVersion();
     }
 
     private void setCurrentActivityName(AccessibilityEvent event) {
@@ -136,10 +159,15 @@ public class HongbaoService extends AccessibilityService {
         //setCurrentActivityName(ev);
         if (CHATTING_LAUNCHER_UI.equals(currentActivityName)) {                               //聊天列表和聊天页面
             if (!isInChartList()) {
-                Log.e(TAG, "In Chart");
-                findRedpockeyAndClick(ev);
+                //Log.e(TAG, "In Chart");
+                if (mWechatVersion != WX_700_VERCODE) {
+                    findRedpockeyAndClick(ev);
+                } else {
+                    findRedpockeyAndClick_700();
+                }
+                //Log.e(TAG,"find packey");
             } else {
-                Log.e(TAG, "In ChartList");
+                //Log.e(TAG, "In ChartList");
                 if (mSharedPreferences.getBoolean("pref_watch_list", false)) {
                     Rect selRect = checkNewsImageIsLuckyMoney();
                     if (selRect != null) {
@@ -147,7 +175,8 @@ public class HongbaoService extends AccessibilityService {
                     }
                 }
             }
-        } else if (LUCKY_MONEY_RECV_UI.equals(currentActivityName)) {                          //拆红包页面
+        } else if (LUCKY_MONEY_RECV_UI.equals(currentActivityName) ||
+                LUCKY_MONEY_RECV_UI_700.equals(currentActivityName)) {                          //拆红包页面
             /*AccessibilityNodeInfo info = findOpenButton(ev.getSource());
             if (info == null) {
                 Log.e(TAG, "Recv_ui:AccessibilityNodeInfo null");
@@ -165,14 +194,17 @@ public class HongbaoService extends AccessibilityService {
                 }
                 mHandler.sendEmptyMessageDelayed(HANDLER_CLOSE_PACKEY, delay + 1000);
             }
+            //Log.e(TAG,"open packey");
         } else if (LUCKY_MONEY_DETAIL_UI.equals(currentActivityName)) {                        //红包详情页面
             if (currentActivityName.equals(currentNodeInfoName)) {
                 Log.e(TAG, "detail UI");
                 mPackeyTag = 0x00;
                 performGlobalAction(GLOBAL_ACTION_BACK);
+                //Log.e(TAG,"back");
             }
         }
     }
+
 
     private void handleNotificationMessage(AccessibilityEvent event) {
         // Not a hongbao
@@ -361,6 +393,99 @@ public class HongbaoService extends AccessibilityService {
         return resultLst;
     }
 
+    /**
+     * 微信7.0.0版本没有了[领取红包]的文字信息，所以用这个方法来查找红包
+     */
+    private void findRedpockeyAndClick_700() {
+        AccessibilityNodeInfo rootInfo = getRootInActiveWindow();
+        List<AccessibilityNodeInfo> redPackeyTextLst = null;
+        redPackeyTextLst = getPacketNode(rootInfo, WECHAT_PACKEY_TIP);
+        if (redPackeyTextLst != null && !redPackeyTextLst.isEmpty()) {
+            List<AccessibilityNodeInfo> recvList = new ArrayList<>();
+            List<AccessibilityNodeInfo> ownList = new ArrayList<>();
+            String str_filter = mSharedPreferences.getString("pref_watch_exclude_words", "");
+            String[] str_fiilter_array = "".equals(str_filter) ? null : str_filter.split(" +");
+            for (AccessibilityNodeInfo tmpInfo : redPackeyTextLst) {
+                AccessibilityNodeInfo parentLayoutInfo = tmpInfo.getParent();
+                if (parentLayoutInfo != null &&
+                        parentLayoutInfo.getClassName().toString().equals(LINEARLAYOUT_NAME)) {
+                    if (parentLayoutInfo.getChildCount() == 0x03) {                     //已领或领取完的红包getChildCount为4
+                        Rect rt = new Rect();
+                        parentLayoutInfo.getBoundsInScreen(rt);
+                        int right = rt.right;
+                        if (right > ScreenShotter.getInstance().getScreenWidth() * 0.8) {
+                            if (mSharedPreferences.getBoolean("pref_watch_self", false)) {
+                                String strHash = getHongbaoHash(tmpInfo);
+                                if (strHash != null) {
+                                    if (!mSelfOpenList.contains(strHash)) {
+                                        mSelfOpenList.add(strHash);
+                                        ownList.add(tmpInfo);
+                                        if (mSelfOpenList.size() > 50) {
+                                            mSelfOpenList.clear();
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            if (str_fiilter_array != null) {
+                                boolean b = false;
+                                try {
+                                    String str_packey_detail = parentLayoutInfo.getChild(0).getText().toString();
+                                    for (String str : str_fiilter_array) {
+                                        if (str_packey_detail.contains(str)) {
+                                            b = true;
+                                            break;
+                                        }
+                                    }
+                                } catch (NullPointerException e) {
+                                    continue;
+                                }
+                                if (!b) {
+                                    recvList.add(tmpInfo);
+                                }
+                            } else {
+                                recvList.add(tmpInfo);
+                            }
+                        }
+                    }
+                }
+            }
+            List<AccessibilityNodeInfo> totalList = new ArrayList<>(recvList.size() + ownList.size());
+            totalList.addAll(recvList);
+            if (!ownList.isEmpty()) {
+                totalList.addAll(ownList);
+            }
+            if (totalList.isEmpty()) {
+                return;
+            }
+            if (totalList.size() > 1) {
+                Collections.sort(totalList, new Comparator<AccessibilityNodeInfo>() {
+                    @Override
+                    public int compare(AccessibilityNodeInfo nodeInfo, AccessibilityNodeInfo t1) {
+                        Rect bounds1 = new Rect();
+                        Rect bounds2 = new Rect();
+                        nodeInfo.getBoundsInScreen(bounds1);
+                        t1.getBoundsInScreen(bounds2);
+                        return bounds1.bottom - bounds2.bottom;
+                    }
+                });
+            }
+            AccessibilityNodeInfo clickInfo = totalList.get(totalList.size() - 1);
+            if (clickInfo != null) {
+                AccessibilityNodeInfo clickLayoutInfo = clickInfo.getParent();
+                if (clickLayoutInfo != null) {
+                    if (mSharedPreferences.getBoolean("pref_watch_chat", false)) {
+                        if (mPackeyTag != 0x00) {
+                            return;
+                        }
+                        mPackeyTag = 0x01;
+                    }
+                    clickLayoutInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
+            }
+        }
+    }
+
     private void findRedpockeyAndClick(AccessibilityEvent ev) {
         AccessibilityNodeInfo rootInfo = getRootInActiveWindow();
         //检查领取红包和查看红包
@@ -449,15 +574,28 @@ public class HongbaoService extends AccessibilityService {
                 if (!mPockeyOpenMutex) {
                     mPockeyOpenMutex = true;
                     Path path = new Path();
+                    int x = 0, y = 0;
                     if (640 == dpi) { //1440
-                        path.moveTo(720, 1575);
+                        //path.moveTo(720, 1575);
+                        x = 720;
+                        y = 1575;
                     } else if (320 == dpi) {//720p
-                        path.moveTo(355, 780);
+                        //path.moveTo(355, 780);
+                        x = 355;
+                        y = 780;
                     } else if (480 == dpi) {//1080p
-                        path.moveTo(533, 1115);
+                        //path.moveTo(533, 1115);
+                        x = 533;
+                        y = 1115;
                     } else if (440 == dpi) {//1080*2160
-                        path.moveTo(450, 1250);
+                        //path.moveTo(450, 1250);
+                        x = 450;
+                        y = 1250;
                     }
+                    if (mWechatVersion == WX_700_VERCODE) {
+                        y += (y * 0.15);
+                    }
+                    path.moveTo(x, y);
                     GestureDescription.Builder builder = new GestureDescription.Builder();
                     try {
                         GestureDescription gestureDescription = builder.addStroke(new GestureDescription.StrokeDescription(path, 450, 50)).build();
@@ -551,6 +689,25 @@ public class HongbaoService extends AccessibilityService {
         }
 
         return content + "@" + getNodeId(node);
+    }
+
+    /**
+     * 获取微信版本信息
+     *
+     * @return 微信版本代号
+     */
+    private int getWechatVersion() {
+        PackageInfo wechatPackageInfo;
+        try {
+            wechatPackageInfo = MyApplication.getContext().getPackageManager().getPackageInfo(WECHAT_PACKAGENAME, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            wechatPackageInfo = null;
+        }
+        if (wechatPackageInfo == null) {
+            return 0x00;
+        }
+        return wechatPackageInfo.versionCode;
     }
 
 

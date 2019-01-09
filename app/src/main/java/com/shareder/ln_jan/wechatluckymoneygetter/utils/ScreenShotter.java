@@ -33,6 +33,7 @@ public class ScreenShotter {
     private ImageReader mImageReader;
     private boolean mIsNormalScreen = true;
     private volatile Point[] mRealSizes = new Point[2];
+    private int mScreenRealHeight;
 
     private static final int PORTRAIT = 0;
     private static final int LANDSCAPE = 1;
@@ -41,6 +42,7 @@ public class ScreenShotter {
         mMediaProjection = null;
         mImageReader = null;
         mIsNormalScreen = checkScreenSizeIsNormal();
+        mScreenRealHeight = mIsNormalScreen ? getScreenHeight() : getScreenRealHeight();
     }
 
     public static ScreenShotter getInstance() {
@@ -70,7 +72,7 @@ public class ScreenShotter {
         if (mImageReader == null) {
             mImageReader = ImageReader.newInstance(
                     getScreenWidth(),
-                    mIsNormalScreen ? getScreenHeight() : getScreenRealHeight(),
+                    mScreenRealHeight,
                     PixelFormat.RGBA_8888,//此处必须和下面 buffer处理一致的格式 ，RGB_565在一些机器上出现兼容问题。
                     1);
         }
@@ -116,16 +118,17 @@ public class ScreenShotter {
                 mImageReader.getSurface(), null, null);
     }
 
-    private int getScreenWidth() {
+    public int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
     }
 
-    private int getScreenHeight() {
+    public int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
     }
 
     /**
      * 某些全面屏手机获取的屏幕宽度不对，需用此方法获取宽度
+     *
      * @return
      */
     public int getScreenRealHeight() {

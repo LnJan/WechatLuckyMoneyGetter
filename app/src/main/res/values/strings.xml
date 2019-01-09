@@ -32,5 +32,7 @@
     <string name="background_authority_request">应用后台运行权限申请</string>
     <string name="authority_request">应用权限申请</string>
     <string name="authority_info">请允许以下权限以保证软件升级功能正常运行</string>
+    <string name="read_phone_state">读取手机状态</string>
+    <string name="write_external_storage">读写外部存储</string>
     <string name="background_authority_tips">解除权限管理/省电策略中的后台限制</string>
 </resources>
