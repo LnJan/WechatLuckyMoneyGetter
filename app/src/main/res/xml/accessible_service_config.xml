@@ -5,7 +5,7 @@
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeNotificationStateChanged"
     android:accessibilityFeedbackType="feedbackAllMask"
     android:packageNames="com.tencent.mm"
-    android:notificationTimeout="500"
+    android:notificationTimeout="100"
     android:settingsActivity="com.shareder.ln_jan.wechatluckymoneygetter.activities.MainActivity"
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"

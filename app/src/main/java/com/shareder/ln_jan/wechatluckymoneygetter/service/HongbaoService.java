@@ -241,9 +241,10 @@ public class HongbaoService extends AccessibilityService {
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root != null) {
             if (root.getChildCount() > 0) {
-                b = root.getChild(0).getChildCount() > 1;
-            } else {
-                b = false;
+                AccessibilityNodeInfo subInfo = root.getChild(0);
+                if (subInfo != null) {
+                    b = subInfo.getChildCount() > 1;
+                }
             }
         }
         return b;
@@ -272,7 +273,13 @@ public class HongbaoService extends AccessibilityService {
         List<Rect> newsList = findNewsRectInScreen();
         Rect resultRect = null;
         if (!newsList.isEmpty()) {
-            Bitmap bmScreenShot = ScreenShotter.getInstance().getScreenShotSync();
+            Bitmap bmScreenShot;
+            try {
+                bmScreenShot = ScreenShotter.getInstance().getScreenShotSync();
+            }catch (Exception e){
+                e.printStackTrace();
+                bmScreenShot=null;
+            }
             if (bmScreenShot == null) {
                 return null;
             }
