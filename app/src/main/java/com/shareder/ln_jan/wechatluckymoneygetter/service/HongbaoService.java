@@ -1,6 +1,7 @@
 package com.shareder.ln_jan.wechatluckymoneygetter.service;
 
 import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -14,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
@@ -30,6 +32,7 @@ import com.shareder.ln_jan.wechatluckymoneygetter.global.MyApplication;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.PowerUtil;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
+import com.shareder.ln_jan.wechatluckymoneygetter.utils.SoundPlayer;
 
 import org.opencv.core.CvException;
 
@@ -80,7 +83,8 @@ public class HongbaoService extends AccessibilityService {
      */
     private static final int WX_700_VERCODE = 1380;
     private static final int HANDLER_CLOSE_PACKEY = 0x01;
-    private static final int HANDLER_POSTDELAY_OPEN = 0x02;           //延时打开红包
+    private static final int HANDLER_POSTDELAY_OPEN = 0x02;             //延时打开红包
+    private static final int HANDLER_POSTDELAY_SCREENON = 0x03;         //锁屏广播
     private String currentActivityName = CHATTING_LAUNCHER_UI;
     private String currentNodeInfoName = "";
     //private String prevActivityName = CHATTING_LAUNCHER_UI;
@@ -89,10 +93,11 @@ public class HongbaoService extends AccessibilityService {
     private SharedPreferences mSharedPreferences;
     private HongbaoServiceHandler mHandler = new HongbaoServiceHandler(this);
     private PowerUtil mPowerUtil = null;
-    private LockScreenReceiver mReceiver = null;
+    private HongbaoServiceReceiver mReceiver = null;
     private List<String> mSelfOpenList = null;
     private int mPackeyTag = 0x00;
     private int mWechatVersion = 0x00;                                  //微信版本
+    private SoundPlayer mSoundPlayer = new SoundPlayer();                 //提示音播放类
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
@@ -128,6 +133,7 @@ public class HongbaoService extends AccessibilityService {
     public void onDestroy() {
         this.mPowerUtil.releasePower();
         unregisterReceiver(this.mReceiver);
+        mSoundPlayer.releaseMusic();
         super.onDestroy();
     }
 
@@ -136,13 +142,19 @@ public class HongbaoService extends AccessibilityService {
         super.onServiceConnected();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         this.mPowerUtil = new PowerUtil(this);
-        this.mReceiver = new LockScreenReceiver(this);
+        this.mReceiver = new HongbaoServiceReceiver(this);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        intentFilter.addAction("com.shareder.ln_jan.broadcast.shutdownservice");
         registerReceiver(this.mReceiver, intentFilter);
         mSelfOpenList = new ArrayList<>(20);
         mWechatVersion = getWechatVersion();
+        int timeout = mSharedPreferences.getInt(SeekBarPreference.PREFERENCE_EVENT_TAG, 100);
+        AccessibilityServiceInfo info = getServiceInfo();
+        info.notificationTimeout = timeout;
+        setServiceInfo(info);
+        mSoundPlayer.loadMusic(this, R.raw.redpackey_sound);
     }
 
     private void setCurrentActivityName(AccessibilityEvent event) {
@@ -217,6 +229,10 @@ public class HongbaoService extends AccessibilityService {
             try {
                 if (mSharedPreferences.getBoolean("pref_watch_on_lock", false)) {
                     mPowerUtil.handleWakeLock(true);
+                } else {
+                    if (mPowerUtil.getIsScreenLock()) {
+                        mSoundPlayer.playMusic();
+                    }
                 }
                 notification.contentIntent.send();
             } catch (PendingIntent.CanceledException e) {
@@ -276,9 +292,9 @@ public class HongbaoService extends AccessibilityService {
             Bitmap bmScreenShot;
             try {
                 bmScreenShot = ScreenShotter.getInstance().getScreenShotSync();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-                bmScreenShot=null;
+                bmScreenShot = null;
             }
             if (bmScreenShot == null) {
                 return null;
@@ -296,7 +312,7 @@ public class HongbaoService extends AccessibilityService {
                     continue;
                 }
                 Bitmap bmSub = Bitmap.createBitmap(bmScreenShot, x, y, width, height);
-                SaveBitmapToLocal(bmSub);
+                //SaveBitmapToLocal(bmSub);
                 boolean b = false;
                 try {
                     b = FeatureDetectionManager.getInstance().isPictureMatchLuckyMoney(bmSub, ScreenShotter.getInstance().isNormalScreen());
@@ -340,10 +356,10 @@ public class HongbaoService extends AccessibilityService {
                     if (subChartInfo.getChildCount() > 0) {                                             //表示是未读消息，有可能有红包
                         Rect outputRect = new Rect();
                         subChartInfo.getBoundsInScreen(outputRect);
-                        if (!ScreenShotter.getInstance().isNormalScreen()) {
+                        /*if (!ScreenShotter.getInstance().isNormalScreen()) {
                             outputRect.top -= 20;
                             outputRect.bottom -= 20;
-                        }
+                        }*/
                         if (outputRect.height() == 0 || outputRect.width() == 0) {
                             continue;
                         }
@@ -737,6 +753,9 @@ public class HongbaoService extends AccessibilityService {
                 case HANDLER_POSTDELAY_OPEN:
                     mRef.get().openPacket();
                     break;
+                case HANDLER_POSTDELAY_SCREENON:
+                    mRef.get().mPowerUtil.setIsScreenLock(false);
+                    break;
                 default:
                     super.handleMessage(msg);
                     break;
@@ -744,10 +763,10 @@ public class HongbaoService extends AccessibilityService {
         }
     }
 
-    static class LockScreenReceiver extends BroadcastReceiver {
+    static class HongbaoServiceReceiver extends BroadcastReceiver {
         private WeakReference<HongbaoService> mRef;
 
-        LockScreenReceiver(HongbaoService s) {
+        HongbaoServiceReceiver(HongbaoService s) {
             mRef = new WeakReference<>(s);
         }
 
@@ -758,7 +777,13 @@ public class HongbaoService extends AccessibilityService {
                 if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                     mRef.get().mPowerUtil.setIsScreenLock(true);
                 } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                    mRef.get().mPowerUtil.setIsScreenLock(false);
+                    //mRef.get().mPowerUtil.setIsScreenLock(false);
+                    //这里需要延时设置变量，因为在MIUI中只要亮屏就会发送这个广播，影响PowerUtil类的判断
+                    mRef.get().mHandler.sendEmptyMessageDelayed(HANDLER_POSTDELAY_SCREENON, 500);
+                } else if (action.equals("com.shareder.ln_jan.broadcast.shutdownservice")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        mRef.get().disableSelf();
+                    }
                 }
             }
         }

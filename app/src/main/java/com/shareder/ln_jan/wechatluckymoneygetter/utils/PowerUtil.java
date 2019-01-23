@@ -54,4 +54,8 @@ public class PowerUtil {
     public void setIsScreenLock(boolean b) {
         mIsScreenLock = b;
     }
+
+    public boolean getIsScreenLock(){
+        return mIsScreenLock;
+    }
 }

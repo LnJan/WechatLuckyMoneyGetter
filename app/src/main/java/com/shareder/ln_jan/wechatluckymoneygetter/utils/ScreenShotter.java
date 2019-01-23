@@ -13,6 +13,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.os.Build;
+import android.os.DeadSystemException;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
@@ -64,7 +65,7 @@ public class ScreenShotter {
         return mMediaProjection != null;
     }
 
-    public Bitmap getScreenShotSync() {
+    public Bitmap getScreenShotSync() throws DeadSystemException {
         if (!isShotterUseful()) {
             return null;
         }

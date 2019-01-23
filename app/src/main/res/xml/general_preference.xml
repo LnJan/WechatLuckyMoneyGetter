@@ -1,72 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    tools:context=".activities.MainActivity"
-    android:icon="@null">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:icon="@null"
+    tools:context=".activities.MainActivity">
     <PreferenceCategory
-        android:title="@string/watch_options"
-        android:layout="@layout/preference_category">
+        android:layout="@layout/preference_category"
+        android:title="@string/watch_options">
         <CheckBoxPreference
-            android:key="pref_watch_notification"
-            android:title="@string/watch_notifications"
-            android:summary="@string/watch_notifications_hint"
             android:defaultValue="true"
-            android:layout="@layout/preference_checkbox"/>
-        <CheckBoxPreference
-            android:key="pref_watch_list"
-            android:title="@string/watch_list"
-            android:summary="@string/watch_list_hint"
+            android:key="pref_watch_notification"
             android:layout="@layout/preference_checkbox"
-            android:defaultValue="false"/>
+            android:summary="@string/watch_notifications_hint"
+            android:title="@string/watch_notifications" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_watch_list"
+            android:layout="@layout/preference_checkbox"
+            android:summary="@string/watch_list_hint"
+            android:title="@string/watch_list" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/anti_block_options"
-        android:layout="@layout/preference_category">
+        android:layout="@layout/preference_category"
+        android:title="@string/anti_block_options">
         <CheckBoxPreference
+            android:defaultValue="false"
             android:key="pref_watch_chat"
-            android:title="@string/auto_open_packets"
             android:layout="@layout/preference_checkbox"
-            android:defaultValue="false"/>
+            android:title="@string/auto_open_packets" />
         <com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference
             android:key="pref_open_delay"
-            android:title="@string/open_with_delay"
-            android:layout="@layout/preference_checkbox"/>
-        <CheckBoxPreference
-            android:key="pref_watch_self"
-            android:title="@string/open_self"
             android:layout="@layout/preference_checkbox"
-            android:defaultValue="false"/>
+            android:title="@string/open_with_delay"
+            seekbarkind="open_delay"/>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_watch_self"
+            android:layout="@layout/preference_checkbox"
+            android:title="@string/open_self" />
         <EditTextPreference
             android:key="pref_watch_exclude_words"
-            android:title="@string/skip_phrases"
+            android:layout="@layout/preference_checkbox"
             android:summary="@string/pref_watch_exclude_words_summary"
-            android:layout="@layout/preference_checkbox"/>
+            android:title="@string/skip_phrases" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/about"
-        android:layout="@layout/preference_category">
+        android:layout="@layout/preference_category"
+        android:title="@string/about">
         <Preference
             android:key="pref_etc_check_update"
-            android:title="@string/check_new_version"
+            android:layout="@layout/preference_checkbox"
             android:summary="@string/check_new_hint"
-            android:layout="@layout/preference_checkbox"/>
+            android:title="@string/check_new_version" />
         <Preference
             android:key="pref_etc_issue"
-            android:title="@string/help_and_feedback"
+            android:layout="@layout/preference_checkbox"
             android:summary="@string/help_hint"
-            android:layout="@layout/preference_checkbox"/>
+            android:title="@string/help_and_feedback" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/labs"
-        android:layout="@layout/preference_category">
-        <CheckBoxPreference
-            android:key="pref_watch_on_lock"
-            android:title="@string/snatch_on_lockscreen"
-            android:summary="@string/snatch_on_lockscreen_hint"
+        android:layout="@layout/preference_category"
+        android:title="@string/high_level_setting">
+        <com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference
+            android:key="pref_event_interval"
             android:layout="@layout/preference_checkbox"
-            android:defaultValue="false"/>
+            android:summary="@string/event_interval_hint"
+            android:title="@string/event_interval"
+            seekbarkind="event_interval"/>
+    </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="@string/labs">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_watch_on_lock"
+            android:layout="@layout/preference_checkbox"
+            android:summary="@string/snatch_on_lockscreen_hint"
+            android:title="@string/snatch_on_lockscreen" />
     </PreferenceCategory>
 </PreferenceScreen>

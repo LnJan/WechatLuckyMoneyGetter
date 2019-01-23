@@ -298,7 +298,9 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                     dialog.dismiss();
                 }
             });
-            dialog.show();
+            if(!isFinishing()){
+                dialog.show();
+            }
         }
     }
 
@@ -334,6 +336,9 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                 authorList.add(Manifest.permission.READ_PHONE_STATE);
             }
             if (!authorList.isEmpty()) {
+                if(isFinishing()){
+                    return;
+                }
                 AuthorDetailDialog dialog = new AuthorDetailDialog(this, R.style.Transparent);
                 final ArrayList<String> sendList = (ArrayList<String>) authorList;
                 dialog.setOnNextstepClickListener(new AuthorDetailDialog.OnNextstepClickListener() {

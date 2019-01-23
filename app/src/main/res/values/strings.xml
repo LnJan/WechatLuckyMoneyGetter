@@ -17,6 +17,9 @@
     <string name="help_and_feedback">帮助与反馈</string>
     <string name="help_hint">前往GitHub项目主页提交issue</string>
     <string name="labs">实验功能</string>
+    <string name="high_level_setting">高级设置</string>
+    <string name="event_interval">响应灵敏度</string>
+    <string name="event_interval_hint">响应灵敏度取决于手机性能，请谨慎使用</string>
     <string name="snatch_on_lockscreen">息屏抢红包</string>
     <string name="snatch_on_lockscreen_hint">保持30分钟后台活跃,可能会极大增加电量消耗,请谨慎使用(该功能设置锁屏密码后无法解锁)</string>
     <string name="service_state">开启插件</string>

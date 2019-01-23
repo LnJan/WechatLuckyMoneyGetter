@@ -53,6 +53,10 @@ public class FeatureDetectionManager {
      * @return
      */
     public boolean isPictureMatchLuckyMoney(Bitmap bmInput, boolean isNormalScreen) throws CvException {
+        if (bmInput == null) {
+            return false;
+        }
+
         if (!isCachePictureExist()) {
             /*if (!createLuckyMoneyPicture()) {
                 return false;
