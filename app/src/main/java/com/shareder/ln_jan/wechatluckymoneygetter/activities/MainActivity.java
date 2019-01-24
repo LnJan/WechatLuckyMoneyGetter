@@ -113,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
         });*/
 
         //初始化bugly
-        Bugly.init(getApplicationContext(), "2212e773ac", true);
+        Bugly.init(getApplicationContext(), "2212e773ac", false);
     }
 
     /*private String getDirFileNameByIndex(String strDir, int index) {

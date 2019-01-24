@@ -29,10 +29,10 @@
             android:layout="@layout/preference_checkbox"
             android:title="@string/auto_open_packets" />
         <com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference
+            seekbarkind="open_delay"
             android:key="pref_open_delay"
             android:layout="@layout/preference_checkbox"
-            android:title="@string/open_with_delay"
-            seekbarkind="open_delay"/>
+            android:title="@string/open_with_delay" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="pref_watch_self"
@@ -43,6 +43,23 @@
             android:layout="@layout/preference_checkbox"
             android:summary="@string/pref_watch_exclude_words_summary"
             android:title="@string/skip_phrases" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="@string/high_level_setting">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_tips_sound"
+            android:layout="@layout/preference_checkbox"
+            android:summary="@string/tips_sound_summary"
+            android:title="@string/tips_sound_title"/>
+        <com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference
+            seekbarkind="event_interval"
+            android:key="pref_event_interval"
+            android:layout="@layout/preference_checkbox"
+            android:summary="@string/event_interval_hint"
+            android:title="@string/event_interval" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -58,17 +75,6 @@
             android:layout="@layout/preference_checkbox"
             android:summary="@string/help_hint"
             android:title="@string/help_and_feedback" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        android:layout="@layout/preference_category"
-        android:title="@string/high_level_setting">
-        <com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference
-            android:key="pref_event_interval"
-            android:layout="@layout/preference_checkbox"
-            android:summary="@string/event_interval_hint"
-            android:title="@string/event_interval"
-            seekbarkind="event_interval"/>
     </PreferenceCategory>
 
 

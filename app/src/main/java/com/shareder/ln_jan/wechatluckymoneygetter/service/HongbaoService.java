@@ -230,7 +230,8 @@ public class HongbaoService extends AccessibilityService {
                 if (mSharedPreferences.getBoolean("pref_watch_on_lock", false)) {
                     mPowerUtil.handleWakeLock(true);
                 } else {
-                    if (mPowerUtil.getIsScreenLock()) {
+                    if (mSharedPreferences.getBoolean("pref_tips_sound", true) &&
+                            mPowerUtil.getIsScreenLock()) {
                         mSoundPlayer.playMusic();
                     }
                 }

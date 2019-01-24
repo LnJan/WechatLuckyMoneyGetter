@@ -38,4 +38,6 @@
     <string name="read_phone_state">读取手机状态</string>
     <string name="write_external_storage">读写外部存储</string>
     <string name="background_authority_tips">解除权限管理/省电策略中的后台限制</string>
+    <string name="tips_sound_title">红包语音提示</string>
+    <string name="tips_sound_summary">锁屏状态下播报语音提示[红包来了]</string>
 </resources>
