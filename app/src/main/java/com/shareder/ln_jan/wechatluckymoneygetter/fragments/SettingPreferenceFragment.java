@@ -4,25 +4,31 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.widget.Toast;
 
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
 import com.shareder.ln_jan.wechatluckymoneygetter.global.MyTransparentDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
+import com.tencent.bugly.beta.Beta;
 
 /**
  * Created by Ln_Jan on 2018/11/8.
+ *
  */
 
-public class SettingPreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
+public class SettingPreferenceFragment extends PreferenceFragment implements
+        Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
     private static final String SCREENSHORT_TIPS = "由于技术原因目前无法直接获取聊天列表中的文字信息，" +
             "目前只能通过截屏的方式判断列表中是否包含红包信息";
+    private static final String MY_GITHUB_ISSUES_URL="https://github.com/LnJan/WechatLuckyMoneyGetter/issues";
 
     private static final int REQUEST_MEDIA_PROJECTION = 0x01;
 
@@ -46,6 +52,20 @@ public class SettingPreferenceFragment extends PreferenceFragment implements Pre
             b = handleExcludeWords(preference, o);
         }
         return b;
+    }
+
+    @Override
+    public boolean onPreferenceClick(Preference preference) {
+        if (preference.getKey().equals("pref_etc_check_update")) {
+            Beta.checkUpgrade(true, false);
+        } else if (preference.getKey().equals("pref_etc_issue")) {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse(MY_GITHUB_ISSUES_URL));
+            startActivity(intent);
+        } else {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -175,6 +195,16 @@ public class SettingPreferenceFragment extends PreferenceFragment implements Pre
         if (watchListPreference.isChecked()) {
             requestScreenShot();
         }
+
+        Preference updatePref = findPreference("pref_etc_check_update");
+        if (updatePref != null) {
+            updatePref.setOnPreferenceClickListener(this);
+        }
+        Preference issuesPref = findPreference("pref_etc_issue");
+        if (issuesPref != null) {
+            issuesPref.setOnPreferenceClickListener(this);
+        }
+
     }
 
 }
