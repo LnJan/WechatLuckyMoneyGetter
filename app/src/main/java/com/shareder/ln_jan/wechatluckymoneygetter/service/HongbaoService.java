@@ -357,10 +357,10 @@ public class HongbaoService extends AccessibilityService {
                     if (subChartInfo.getChildCount() > 0) {                                             //表示是未读消息，有可能有红包
                         Rect outputRect = new Rect();
                         subChartInfo.getBoundsInScreen(outputRect);
-                        /*if (!ScreenShotter.getInstance().isNormalScreen()) {
+                        if (!ScreenShotter.getInstance().isNormalScreen()) {
                             outputRect.top -= 20;
                             outputRect.bottom -= 20;
-                        }*/
+                        }
                         if (outputRect.height() == 0 || outputRect.width() == 0) {
                             continue;
                         }
