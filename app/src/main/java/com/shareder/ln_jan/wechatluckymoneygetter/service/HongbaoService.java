@@ -615,6 +615,12 @@ public class HongbaoService extends AccessibilityService {
                         //path.moveTo(450, 1250);
                         x = 450;
                         y = 1250;
+                    } else {
+                        int screenHeight = ScreenShotter.getInstance().isNormalScreen() ?
+                                ScreenShotter.getInstance().getScreenHeight() : ScreenShotter.getInstance().getScreenRealHeight();
+                        int screenWidth = ScreenShotter.getInstance().getScreenWidth();
+                        x = (int) (screenWidth * 0.5);
+                        y = (int) (screenHeight * 0.58);
                     }
                     if (mWechatVersion == WX_700_VERCODE) {
                         y += (y * 0.15);
