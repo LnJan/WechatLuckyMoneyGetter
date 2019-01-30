@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
     private AccessibilityManager accessibilityManager;
     private Switch service_switch;
     private MainActivityHandler mHandler = new MainActivityHandler(this);
+    private SettingPreferenceFragment mFragment = new SettingPreferenceFragment();
+    private SharedPreferences mSharedPreferences;
     private static final String SHOWDIALOG_TAG = "NotShowPowerDialog";
     private static final int HANDLER_REQUEST_AUTHOR = 0x01;
     private static final int HANDLER_SHOW_POWER_DIALOG = 0x02;
@@ -83,12 +86,13 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
             accessibilityManager.addAccessibilityStateChangeListener(this);
         }
 
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         service_switch = findViewById(R.id.service_open_switch);
         service_switch.setOnClickListener(this);
 
         handleMIUIStatusBar();
         loadFragmentActivity();
-        //requestScreenShot();
 
         FeatureDetectionManager.getInstance().createLuckyMoneyPicture();
 
@@ -178,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                 }
             }
             if (builder.length() > 0) {
-                builder.deleteCharAt(builder.length()-1);
+                builder.deleteCharAt(builder.length() - 1);
                 Toast.makeText(this, builder.toString(), Toast.LENGTH_SHORT).show();
             }
             mHandler.sendEmptyMessage(HANDLER_SHOW_POWER_DIALOG);
@@ -241,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
     private void loadFragmentActivity() {
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.preferences_fragment, new SettingPreferenceFragment());
+        fragmentTransaction.replace(R.id.preferences_fragment, mFragment);
         fragmentTransaction.commit();
     }
 
@@ -249,11 +253,15 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
      * 更新当前 HongbaoService 显示状态
      */
     private void updateServiceStatus() {
+        SharedPreferences.Editor editor=mSharedPreferences.edit();
         if (isServiceEnabled()) {
             service_switch.setChecked(true);
+            editor.putBoolean("HongBaoServiceEnable",true);
         } else {
             service_switch.setChecked(false);
+            editor.putBoolean("HongBaoServiceEnable",false);
         }
+        editor.apply();
     }
 
     /**
@@ -293,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                     dialog.dismiss();
                 }
             });
-            if(!isFinishing()){
+            if (!isFinishing()) {
                 dialog.show();
             }
         }
@@ -331,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                 authorList.add(Manifest.permission.READ_PHONE_STATE);
             }
             if (!authorList.isEmpty()) {
-                if(isFinishing()){
+                if (isFinishing()) {
                     return;
                 }
                 AuthorDetailDialog dialog = new AuthorDetailDialog(this, R.style.Transparent);

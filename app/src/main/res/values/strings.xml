@@ -40,4 +40,5 @@
     <string name="background_authority_tips">解除权限管理/省电策略中的后台限制</string>
     <string name="tips_sound_title">红包语音提示</string>
     <string name="tips_sound_summary">锁屏状态下播报语音提示[红包来了]</string>
+    <string name="notification_tips">开启通知读取权限用于监听红包信息</string>
 </resources>

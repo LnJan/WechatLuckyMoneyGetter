@@ -3,8 +3,6 @@ package com.shareder.ln_jan.wechatluckymoneygetter.service;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.GestureDescription;
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +16,6 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -30,9 +27,7 @@ import com.shareder.ln_jan.wechatluckymoneygetter.R;
 import com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference;
 import com.shareder.ln_jan.wechatluckymoneygetter.tinker.LuckyMoneyTinkerApplication;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
-import com.shareder.ln_jan.wechatluckymoneygetter.utils.PowerUtil;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
-import com.shareder.ln_jan.wechatluckymoneygetter.utils.SoundPlayer;
 
 import org.opencv.core.CvException;
 
@@ -82,9 +77,13 @@ public class HongbaoService extends AccessibilityService {
      * 微信7.0.0版本的版本号
      */
     private static final int WX_700_VERCODE = 1380;
+    /**
+     * 微信7.0.3版本的版本号
+     */
+    private static final int WX_703_VERCODE = 1400;
     private static final int HANDLER_CLOSE_PACKEY = 0x01;
     private static final int HANDLER_POSTDELAY_OPEN = 0x02;             //延时打开红包
-    private static final int HANDLER_POSTDELAY_SCREENON = 0x03;         //锁屏广播
+    //private static final int HANDLER_POSTDELAY_SCREENON = 0x03;         //锁屏广播
     private String currentActivityName = CHATTING_LAUNCHER_UI;
     private String currentNodeInfoName = "";
     //private String prevActivityName = CHATTING_LAUNCHER_UI;
@@ -92,12 +91,12 @@ public class HongbaoService extends AccessibilityService {
     private boolean mPockeyOpenMutex = false;
     private SharedPreferences mSharedPreferences;
     private HongbaoServiceHandler mHandler = new HongbaoServiceHandler(this);
-    private PowerUtil mPowerUtil = null;
+    //private PowerUtil mPowerUtil = null;
     private HongbaoServiceReceiver mReceiver = null;
     private List<String> mSelfOpenList = null;
     private int mPackeyTag = 0x00;
     private int mWechatVersion = 0x00;                                  //微信版本
-    private SoundPlayer mSoundPlayer = new SoundPlayer();                 //提示音播放类
+    //private SoundPlayer mSoundPlayer = new SoundPlayer();                 //提示音播放类
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
@@ -106,17 +105,17 @@ public class HongbaoService extends AccessibilityService {
         if (!mGlobalMutex) {
             mGlobalMutex = true;
             setCurrentActivityName(accessibilityEvent);
-            Log.d(TAG,"Type:"+accessibilityEvent.getEventType());
+            Log.d(TAG, "Type:" + accessibilityEvent.getEventType());
             switch (accessibilityEvent.getEventType()) {
                 case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
-                    Log.d(TAG,"TYPE_NOTIFICATION_STATE_CHANGED");
-                    if (mSharedPreferences.getBoolean("pref_watch_notification", false)) {
+                    Log.d(TAG, "TYPE_NOTIFICATION_STATE_CHANGED");
+                    /*if (mSharedPreferences.getBoolean("pref_watch_notification", false)) {
                         handleNotificationMessage(accessibilityEvent);
-                    }
+                    }*/
                     break;
                 case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
                 case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-                    String tip = accessibilityEvent.getText().toString();
+                    //String tip = accessibilityEvent.getText().toString();
                     handleScreenMessage(accessibilityEvent);
                     break;
                 default:
@@ -133,9 +132,9 @@ public class HongbaoService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        this.mPowerUtil.releasePower();
+        //this.mPowerUtil.releasePower();
         unregisterReceiver(this.mReceiver);
-        mSoundPlayer.releaseMusic();
+        //mSoundPlayer.releaseMusic();
         super.onDestroy();
     }
 
@@ -143,11 +142,11 @@ public class HongbaoService extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        this.mPowerUtil = new PowerUtil(this);
+        //this.mPowerUtil = new PowerUtil(this);
         this.mReceiver = new HongbaoServiceReceiver(this);
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        //intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        //intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction("com.shareder.ln_jan.broadcast.shutdownservice");
         registerReceiver(this.mReceiver, intentFilter);
         mSelfOpenList = new ArrayList<>(20);
@@ -156,7 +155,7 @@ public class HongbaoService extends AccessibilityService {
         AccessibilityServiceInfo info = getServiceInfo();
         info.notificationTimeout = timeout;
         setServiceInfo(info);
-        mSoundPlayer.loadMusic(this, R.raw.redpackey_sound);
+        //mSoundPlayer.loadMusic(this, R.raw.redpackey_sound);
     }
 
     private void setCurrentActivityName(AccessibilityEvent event) {
@@ -174,7 +173,7 @@ public class HongbaoService extends AccessibilityService {
         if (CHATTING_LAUNCHER_UI.equals(currentActivityName)) {                               //聊天列表和聊天页面
             if (!isInChartList()) {
                 //Log.e(TAG, "In Chart");
-                if (mWechatVersion != WX_700_VERCODE) {
+                if (mWechatVersion < WX_700_VERCODE) {
                     findRedpockeyAndClick(ev);
                 } else {
                     findRedpockeyAndClick_700();
@@ -220,7 +219,7 @@ public class HongbaoService extends AccessibilityService {
     }
 
 
-    private void handleNotificationMessage(AccessibilityEvent event) {
+    /*private void handleNotificationMessage(AccessibilityEvent event) {
         // Not a hongbao
         String tip = event.getText().toString();
         if (!tip.contains(WECHAT_NOTIFICATION_TIP)) return;
@@ -242,7 +241,7 @@ public class HongbaoService extends AccessibilityService {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 
     /**
      * 检查是否在聊天列表
@@ -624,7 +623,7 @@ public class HongbaoService extends AccessibilityService {
                         x = (int) (screenWidth * 0.5);
                         y = (int) (screenHeight * 0.58);
                     }
-                    if (mWechatVersion == WX_700_VERCODE) {
+                    if (mWechatVersion >= WX_700_VERCODE) {
                         y += (y * 0.15);
                     }
                     path.moveTo(x, y);
@@ -762,9 +761,6 @@ public class HongbaoService extends AccessibilityService {
                 case HANDLER_POSTDELAY_OPEN:
                     mRef.get().openPacket();
                     break;
-                case HANDLER_POSTDELAY_SCREENON:
-                    mRef.get().mPowerUtil.setIsScreenLock(false);
-                    break;
                 default:
                     super.handleMessage(msg);
                     break;
@@ -783,13 +779,18 @@ public class HongbaoService extends AccessibilityService {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action != null) {
-                if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+                /*if (action.equals(Intent.ACTION_SCREEN_OFF)) {
                     mRef.get().mPowerUtil.setIsScreenLock(true);
                 } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
                     //mRef.get().mPowerUtil.setIsScreenLock(false);
                     //这里需要延时设置变量，因为在MIUI中只要亮屏就会发送这个广播，影响PowerUtil类的判断
                     mRef.get().mHandler.sendEmptyMessageDelayed(HANDLER_POSTDELAY_SCREENON, 500);
                 } else if (action.equals("com.shareder.ln_jan.broadcast.shutdownservice")) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        mRef.get().disableSelf();
+                    }
+                }*/
+                if (action.equals("com.shareder.ln_jan.broadcast.shutdownservice")) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         mRef.get().disableSelf();
                     }

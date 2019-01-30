@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 // 依赖插件脚本
-//apply from: 'tinker-support.gradle'
+apply from: 'tinker-support.gradle'
 
 android {
     signingConfigs {
@@ -16,8 +16,8 @@ android {
         applicationId "com.shareder.ln_jan.wechatluckymoneygetter"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 13
-        versionName "1.1.5"
+        versionCode 15
+        versionName "1.1.7"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
             //设置支持的SO库架构
