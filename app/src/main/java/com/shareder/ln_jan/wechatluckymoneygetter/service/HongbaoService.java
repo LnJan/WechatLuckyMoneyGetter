@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
 import com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference;
-import com.shareder.ln_jan.wechatluckymoneygetter.global.MyApplication;
+import com.shareder.ln_jan.wechatluckymoneygetter.tinker.LuckyMoneyTinkerApplication;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.PowerUtil;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
@@ -106,8 +106,10 @@ public class HongbaoService extends AccessibilityService {
         if (!mGlobalMutex) {
             mGlobalMutex = true;
             setCurrentActivityName(accessibilityEvent);
+            Log.d(TAG,"Type:"+accessibilityEvent.getEventType());
             switch (accessibilityEvent.getEventType()) {
                 case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
+                    Log.d(TAG,"TYPE_NOTIFICATION_STATE_CHANGED");
                     if (mSharedPreferences.getBoolean("pref_watch_notification", false)) {
                         handleNotificationMessage(accessibilityEvent);
                     }
@@ -592,7 +594,7 @@ public class HongbaoService extends AccessibilityService {
         Log.e(TAG, "openPacket！" + dpi);
         if (android.os.Build.VERSION.SDK_INT <= 23) {
             //nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            Toast.makeText(MyApplication.getContext(), getString(R.string.not_support_low_level), Toast.LENGTH_SHORT).show();
+            Toast.makeText(LuckyMoneyTinkerApplication.getContext(), getString(R.string.not_support_low_level), Toast.LENGTH_SHORT).show();
         } else {
             if (android.os.Build.VERSION.SDK_INT > 23) {
                 if (!mPockeyOpenMutex) {
@@ -729,7 +731,7 @@ public class HongbaoService extends AccessibilityService {
     private int getWechatVersion() {
         PackageInfo wechatPackageInfo;
         try {
-            wechatPackageInfo = MyApplication.getContext().getPackageManager().getPackageInfo(WECHAT_PACKAGENAME, 0);
+            wechatPackageInfo = LuckyMoneyTinkerApplication.getContext().getPackageManager().getPackageInfo(WECHAT_PACKAGENAME, 0);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             wechatPackageInfo = null;

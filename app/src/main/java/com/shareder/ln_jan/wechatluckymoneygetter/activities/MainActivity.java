@@ -29,13 +29,11 @@ import com.shareder.ln_jan.wechatluckymoneygetter.fragments.SettingPreferenceFra
 import com.shareder.ln_jan.wechatluckymoneygetter.global.AuthorDetailDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.global.MyTransparentDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
-import com.tencent.bugly.Bugly;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -111,9 +109,6 @@ public class MainActivity extends AppCompatActivity implements AccessibilityMana
                 }
             }
         });*/
-
-        //初始化bugly
-        Bugly.init(getApplicationContext(), "2212e773ac", false);
     }
 
     /*private String getDirFileNameByIndex(String strDir, int index) {

@@ -7,7 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 
-import com.shareder.ln_jan.wechatluckymoneygetter.global.MyApplication;
+import com.shareder.ln_jan.wechatluckymoneygetter.tinker.LuckyMoneyTinkerApplication;
 
 import org.opencv.android.Utils;
 import org.opencv.core.CvException;
@@ -35,7 +35,7 @@ public class FeatureDetectionManager {
     private Bitmap bmLocal = null;
 
     private FeatureDetectionManager() {
-        strMoneyPicPath = MyApplication.getContext().getCacheDir().getAbsolutePath() + File.separator + "luckymoney_pic.jpg";
+        strMoneyPicPath = LuckyMoneyTinkerApplication.getContext().getCacheDir().getAbsolutePath() + File.separator + "luckymoney_pic.jpg";
     }
 
     public static FeatureDetectionManager getInstance() {

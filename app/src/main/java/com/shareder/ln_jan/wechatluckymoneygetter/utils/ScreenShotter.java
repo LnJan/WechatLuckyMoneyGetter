@@ -18,7 +18,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
 
-import com.shareder.ln_jan.wechatluckymoneygetter.global.MyApplication;
+import com.shareder.ln_jan.wechatluckymoneygetter.tinker.LuckyMoneyTinkerApplication;
 
 import java.nio.ByteBuffer;
 
@@ -133,11 +133,11 @@ public class ScreenShotter {
      * @return
      */
     public int getScreenRealHeight() {
-        int orientation = MyApplication.getContext().getResources().getConfiguration().orientation;
+        int orientation = LuckyMoneyTinkerApplication.getContext().getResources().getConfiguration().orientation;
         orientation = orientation == Configuration.ORIENTATION_PORTRAIT ? PORTRAIT : LANDSCAPE;
 
         if (mRealSizes[orientation] == null) {
-            WindowManager windowManager = (WindowManager) MyApplication.getContext().getSystemService(Context.WINDOW_SERVICE);
+            WindowManager windowManager = (WindowManager) LuckyMoneyTinkerApplication.getContext().getSystemService(Context.WINDOW_SERVICE);
             if (windowManager == null) {
                 return getScreenHeight();
             }

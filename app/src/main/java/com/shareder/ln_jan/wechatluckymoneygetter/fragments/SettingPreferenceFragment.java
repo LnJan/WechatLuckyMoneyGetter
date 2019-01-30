@@ -11,7 +11,6 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.view.View;
 import android.widget.Toast;
 
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
@@ -21,14 +20,13 @@ import com.tencent.bugly.beta.Beta;
 
 /**
  * Created by Ln_Jan on 2018/11/8.
- *
  */
 
 public class SettingPreferenceFragment extends PreferenceFragment implements
         Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener {
     private static final String SCREENSHORT_TIPS = "由于技术原因目前无法直接获取聊天列表中的文字信息，" +
             "目前只能通过截屏的方式判断列表中是否包含红包信息";
-    private static final String MY_GITHUB_ISSUES_URL="https://github.com/LnJan/WechatLuckyMoneyGetter/issues";
+    private static final String MY_GITHUB_ISSUES_URL = "https://github.com/LnJan/WechatLuckyMoneyGetter/issues";
 
     private static final int REQUEST_MEDIA_PROJECTION = 0x01;
 
