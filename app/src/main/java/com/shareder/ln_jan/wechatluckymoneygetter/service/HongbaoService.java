@@ -14,9 +14,11 @@ import android.graphics.Bitmap;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -28,9 +30,12 @@ import com.shareder.ln_jan.wechatluckymoneygetter.activities.SeekBarPreference;
 import com.shareder.ln_jan.wechatluckymoneygetter.tinker.LuckyMoneyTinkerApplication;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.FeatureDetectionManager;
 import com.shareder.ln_jan.wechatluckymoneygetter.utils.ScreenShotter;
+import com.tencent.bugly.crashreport.BuglyLog;
+import com.tencent.bugly.crashreport.CrashReport;
 
 import org.opencv.core.CvException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,6 +43,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,21 +97,22 @@ public class HongbaoService extends AccessibilityService {
     private boolean mPockeyOpenMutex = false;
     private SharedPreferences mSharedPreferences;
     private HongbaoServiceHandler mHandler = new HongbaoServiceHandler(this);
-    //private PowerUtil mPowerUtil = null;
     private HongbaoServiceReceiver mReceiver = null;
     private List<String> mSelfOpenList = null;
     private int mPackeyTag = 0x00;
     private int mWechatVersion = 0x00;                                  //微信版本
-    //private SoundPlayer mSoundPlayer = new SoundPlayer();                 //提示音播放类
+    private List<String> mOpeningList = null;                            //正在处理的红包列表
+    private String mCurrentPackeyHash = "";
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent accessibilityEvent) {
         //Log.e(TAG, "event recv");
-        Log.e(TAG, "class:" + accessibilityEvent.getClassName().toString());
+        //Log.e(TAG, "class:" + accessibilityEvent.getClassName().toString());
         if (!mGlobalMutex) {
             mGlobalMutex = true;
             setCurrentActivityName(accessibilityEvent);
-            Log.d(TAG, "Type:" + accessibilityEvent.getEventType());
+            //Log.d(TAG, "Type:" + accessibilityEvent.getEventType());
+            Log.e(TAG, "mPackeyTag:" + mPackeyTag);
             switch (accessibilityEvent.getEventType()) {
                 case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
                     Log.d(TAG, "TYPE_NOTIFICATION_STATE_CHANGED");
@@ -150,6 +157,7 @@ public class HongbaoService extends AccessibilityService {
         intentFilter.addAction("com.shareder.ln_jan.broadcast.shutdownservice");
         registerReceiver(this.mReceiver, intentFilter);
         mSelfOpenList = new ArrayList<>(20);
+        mOpeningList = new LinkedList<>();
         mWechatVersion = getWechatVersion();
         int timeout = mSharedPreferences.getInt(SeekBarPreference.PREFERENCE_EVENT_TAG, 100);
         AccessibilityServiceInfo info = getServiceInfo();
@@ -170,7 +178,8 @@ public class HongbaoService extends AccessibilityService {
 
     private void handleScreenMessage(AccessibilityEvent ev) {
         //setCurrentActivityName(ev);
-        if (CHATTING_LAUNCHER_UI.equals(currentActivityName)) {                               //聊天列表和聊天页面
+        if (CHATTING_LAUNCHER_UI.equals(currentActivityName) ||
+                WECHAT_VIEWPAGER_LAYOUT.equals(currentActivityName)) {                               //聊天列表和聊天页面
             if (!isInChartList()) {
                 //Log.e(TAG, "In Chart");
                 if (mWechatVersion < WX_700_VERCODE) {
@@ -205,13 +214,22 @@ public class HongbaoService extends AccessibilityService {
                 } else {
                     mHandler.sendEmptyMessageDelayed(HANDLER_POSTDELAY_OPEN, delay);
                 }
-                mHandler.sendEmptyMessageDelayed(HANDLER_CLOSE_PACKEY, delay + 1000);
+                Message msg = new Message();
+                msg.what = HANDLER_CLOSE_PACKEY;
+                Bundle bundle = new Bundle();
+                bundle.putString("data", mCurrentPackeyHash);
+                msg.setData(bundle);
+                mHandler.sendMessageDelayed(msg, delay + 1000);
+                //mHandler.sendEmptyMessageDelayed(HANDLER_CLOSE_PACKEY, delay + 1000);
             }
             //Log.e(TAG,"open packey");
         } else if (LUCKY_MONEY_DETAIL_UI.equals(currentActivityName)) {                        //红包详情页面
             if (currentActivityName.equals(currentNodeInfoName)) {
                 Log.e(TAG, "detail UI");
                 mPackeyTag = 0x00;
+                if (mSharedPreferences.getBoolean("pref_watch_chat", false)) {
+                    mOpeningList.remove(mCurrentPackeyHash);
+                }
                 performGlobalAction(GLOBAL_ACTION_BACK);
                 //Log.e(TAG,"back");
             }
@@ -332,6 +350,11 @@ public class HongbaoService extends AccessibilityService {
         return resultRect;
     }
 
+    /**
+     * 保存图片到本地缓存目录（调试时使用）
+     *
+     * @param bmp
+     */
     private void SaveBitmapToLocal(Bitmap bmp) {
         String strSavePath = getCacheDir().getAbsolutePath() + File.separator + java.util.UUID.randomUUID().toString() + ".jpg";
         try {
@@ -438,7 +461,7 @@ public class HongbaoService extends AccessibilityService {
                         Rect rt = new Rect();
                         parentLayoutInfo.getBoundsInScreen(rt);
                         int right = rt.right;
-                        if (right > ScreenShotter.getInstance().getScreenWidth() * 0.8) {
+                        if (right > ScreenShotter.getInstance().getScreenWidthPublic() * 0.8) {
                             if (mSharedPreferences.getBoolean("pref_watch_self", false)) {
                                 String strHash = getHongbaoHash(tmpInfo);
                                 if (strHash != null) {
@@ -475,6 +498,7 @@ public class HongbaoService extends AccessibilityService {
                     }
                 }
             }
+            //Log.e(TAG, "recvList:" + recvList.size() + ",ownList:" + ownList.size());
             List<AccessibilityNodeInfo> totalList = new ArrayList<>(recvList.size() + ownList.size());
             totalList.addAll(recvList);
             if (!ownList.isEmpty()) {
@@ -503,6 +527,9 @@ public class HongbaoService extends AccessibilityService {
                         if (mPackeyTag != 0x00) {
                             return;
                         }
+                        String strHash = getHongbaoHash(clickInfo);
+                        mOpeningList.add(strHash);
+                        mCurrentPackeyHash = strHash;
                         mPackeyTag = 0x01;
                     }
                     clickLayoutInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
@@ -550,6 +577,9 @@ public class HongbaoService extends AccessibilityService {
                 }
             }
             if (openPackeyInfo != null) {
+                String strHash = getHongbaoHash(openPackeyInfo);
+                mCurrentPackeyHash = strHash;
+                mOpeningList.add(strHash);
                 AccessibilityNodeInfo parentInfo = openPackeyInfo.getParent();
                 if (parentInfo != null) {
                     if (mSharedPreferences.getBoolean("pref_watch_chat", false)) {
@@ -565,6 +595,13 @@ public class HongbaoService extends AccessibilityService {
         }
     }
 
+    /**
+     * 查找[开]字的按钮
+     *
+     * @param node
+     * @return
+     * @deprecated 在旧版本微信中可用
+     */
     private AccessibilityNodeInfo findOpenButton(AccessibilityNodeInfo node) {
         if (node == null)
             return null;
@@ -617,15 +654,32 @@ public class HongbaoService extends AccessibilityService {
                         x = 450;
                         y = 1250;
                     } else {
-                        int screenHeight = ScreenShotter.getInstance().isNormalScreen() ?
-                                ScreenShotter.getInstance().getScreenHeight() : ScreenShotter.getInstance().getScreenRealHeight();
-                        int screenWidth = ScreenShotter.getInstance().getScreenWidth();
-                        x = (int) (screenWidth * 0.5);
-                        y = (int) (screenHeight * 0.58);
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        org.opencv.core.Point pt = getOpenPackeyRect();
+                        if (pt == null) {
+                            //Toast.makeText(LuckyMoneyTinkerApplication.getContext(),
+                            //"请勾选【监视聊天列表】启用红包位置智能识别", Toast.LENGTH_SHORT).show();
+                            int screenHeight = ScreenShotter.getInstance().getScreenHeightPublic();
+                            int screenWidth = ScreenShotter.getInstance().getScreenWidthPublic();
+                            x = (int) (screenWidth * 0.5);
+                            y = (int) (screenHeight * 0.58);
+                        } else {
+                            x = (int) (pt.x);
+                            y = (int) (pt.y);
+                            if (mWechatVersion >= WX_700_VERCODE) {
+                                y -= (y * 0.13);
+                            }
+                        }
                     }
+
                     if (mWechatVersion >= WX_700_VERCODE) {
                         y += (y * 0.15);
                     }
+                    Log.e(TAG, "open pos:" + x + "," + y);
                     path.moveTo(x, y);
                     GestureDescription.Builder builder = new GestureDescription.Builder();
                     try {
@@ -633,17 +687,15 @@ public class HongbaoService extends AccessibilityService {
                         dispatchGesture(gestureDescription, new GestureResultCallback() {
                             @Override
                             public void onCompleted(GestureDescription gestureDescription) {
-                                Log.e(TAG, "onCompleted");
+                                //Log.e(TAG, "onCompleted");
                                 mPockeyOpenMutex = false;
-                                mPackeyTag = 0x03;
                                 super.onCompleted(gestureDescription);
                             }
 
                             @Override
                             public void onCancelled(GestureDescription gestureDescription) {
-                                Log.e(TAG, "onCancelled");
+                                //Log.e(TAG, "onCancelled");
                                 mPockeyOpenMutex = false;
-                                mPackeyTag = 0x03;
                                 super.onCancelled(gestureDescription);
                             }
                         }, null);
@@ -742,6 +794,83 @@ public class HongbaoService extends AccessibilityService {
     }
 
 
+    /**
+     * 利用OpenCv图像识别技术查找[开]的位置
+     *
+     * @return Point
+     */
+    private org.opencv.core.Point getOpenPackeyRect() {
+        Bitmap bm = null;
+        try {
+            bm = ScreenShotter.getInstance().getScreenShotSync();
+        } catch (Exception e) {
+            CrashReport.postCatchedException(e);
+        }
+        if (bm == null) {
+            BuglyLog.e(TAG, "打开红包截取图片异常");
+            return null;
+        }
+        int width = (int) (ScreenShotter.getInstance().getScreenWidthPublic() * 0.4);
+        int height = (int) (ScreenShotter.getInstance().getScreenHeightPublic() * 0.3);
+        int startX = (ScreenShotter.getInstance().getScreenWidthPublic() - width) / 2;
+        int startY = ScreenShotter.getInstance().getScreenHeightPublic() / 2;
+        Bitmap bmSub = Bitmap.createBitmap(bm, startX, startY, width, height);
+        //String strBase64 = bitmapToBase64(bmSub);
+        //Log.e(TAG, "data:" + strBase64);
+        org.opencv.core.Point pt = null;
+        try {
+            pt = FeatureDetectionManager.getInstance().getOpenPackeyPos(bmSub);
+        } catch (CvException e1) {
+            CrashReport.postCatchedException(e1);
+            pt = null;
+        }
+        bm.recycle();
+        bmSub.recycle();
+        if (pt == null) {
+            return null;
+        }
+        pt.x += startX;
+        pt.y += startY;
+        return pt;
+    }
+
+    /**
+     * bitmap转为base64（测试时使用）
+     *
+     * @param bitmap 输入的图片
+     * @return base64字符串
+     */
+    public static String bitmapToBase64(Bitmap bitmap) {
+
+        String result = null;
+        ByteArrayOutputStream baos = null;
+        try {
+            if (bitmap != null) {
+                baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+                baos.flush();
+                baos.close();
+
+                byte[] bitmapBytes = baos.toByteArray();
+                result = Base64.encodeToString(bitmapBytes, Base64.NO_WRAP);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.flush();
+                    baos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+
     static class HongbaoServiceHandler extends Handler {
         private WeakReference<HongbaoService> mRef;
 
@@ -753,7 +882,9 @@ public class HongbaoService extends AccessibilityService {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case HANDLER_CLOSE_PACKEY:
-                    if (mRef.get().mPackeyTag == 0x03) {
+                    String dataHash = msg.getData().getString("data");
+                    if (mRef.get().mOpeningList.contains(dataHash)) {
+                        mRef.get().mOpeningList.remove(dataHash);
                         mRef.get().mPackeyTag = 0x00;
                         mRef.get().performGlobalAction(GLOBAL_ACTION_BACK);
                     }

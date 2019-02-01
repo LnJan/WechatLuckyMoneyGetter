@@ -5,7 +5,7 @@
     <string name="watch_notifications">监视系统通知</string>
     <string name="watch_notifications_hint">读取新消息通知中的红包提示并进入聊天页</string>
     <string name="watch_list">监视聊天列表</string>
-    <string name="watch_list_hint">读取聊天列表中的红包提示并进入聊天页</string>
+    <string name="watch_list_hint">使用OpenCv图像识别列表中的红包关键字和辅助定位[开]关键字</string>
     <string name="anti_block_options">防封号选项</string>
     <string name="auto_open_packets">自动拆开红包</string>
     <string name="open_with_delay">延时拆开红包</string>
@@ -16,6 +16,8 @@
     <string name="check_new_hint">前往GitHub项目主页获取最新安装包</string>
     <string name="help_and_feedback">帮助与反馈</string>
     <string name="help_hint">前往GitHub项目主页提交issue</string>
+    <string name="shared_app">应用分享</string>
+    <string name="shared_app_hint">如果您觉得好用，可以分享给身边的朋友。让大家感受开源的乐趣</string>
     <string name="labs">实验功能</string>
     <string name="high_level_setting">高级设置</string>
     <string name="event_interval">响应灵敏度</string>
@@ -41,4 +43,5 @@
     <string name="tips_sound_title">红包语音提示</string>
     <string name="tips_sound_summary">锁屏状态下播报语音提示[红包来了]</string>
     <string name="notification_tips">开启通知读取权限用于监听红包信息</string>
+    <string name="baidu_downlaod_link">[微信红包工具]一款开源的红包插件，绿色安全，让您不错过身边每个红包！欢迎下载：https://pan.baidu.com/s/1d_r_GB5DawHFKVKMxuyARQ</string>
 </resources>

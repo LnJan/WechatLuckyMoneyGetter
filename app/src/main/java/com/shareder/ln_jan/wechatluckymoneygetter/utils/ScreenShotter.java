@@ -35,6 +35,7 @@ public class ScreenShotter {
     private boolean mIsNormalScreen = true;
     private volatile Point[] mRealSizes = new Point[2];
     private int mScreenRealHeight;
+    private int mScreenRealWidth;
 
     private static final int PORTRAIT = 0;
     private static final int LANDSCAPE = 1;
@@ -44,6 +45,7 @@ public class ScreenShotter {
         mImageReader = null;
         mIsNormalScreen = checkScreenSizeIsNormal();
         mScreenRealHeight = mIsNormalScreen ? getScreenHeight() : getScreenRealHeight();
+        mScreenRealWidth = getScreenWidth();
     }
 
     public static ScreenShotter getInstance() {
@@ -72,7 +74,7 @@ public class ScreenShotter {
 
         if (mImageReader == null) {
             mImageReader = ImageReader.newInstance(
-                    getScreenWidth(),
+                    mScreenRealWidth,
                     mScreenRealHeight,
                     PixelFormat.RGBA_8888,//此处必须和下面 buffer处理一致的格式 ，RGB_565在一些机器上出现兼容问题。
                     1);
@@ -109,6 +111,15 @@ public class ScreenShotter {
         return bitmap;
     }
 
+
+    public int getScreenWidthPublic() {
+        return mScreenRealWidth;
+    }
+
+    public int getScreenHeightPublic() {
+        return mScreenRealHeight;
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private VirtualDisplay virtualDisplay() {
         return mMediaProjection.createVirtualDisplay("screen-mirror",
@@ -119,11 +130,11 @@ public class ScreenShotter {
                 mImageReader.getSurface(), null, null);
     }
 
-    public int getScreenWidth() {
+    private int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
     }
 
-    public int getScreenHeight() {
+    private int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
     }
 
@@ -132,7 +143,7 @@ public class ScreenShotter {
      *
      * @return
      */
-    public int getScreenRealHeight() {
+    private int getScreenRealHeight() {
         int orientation = LuckyMoneyTinkerApplication.getContext().getResources().getConfiguration().orientation;
         orientation = orientation == Configuration.ORIENTATION_PORTRAIT ? PORTRAIT : LANDSCAPE;
 

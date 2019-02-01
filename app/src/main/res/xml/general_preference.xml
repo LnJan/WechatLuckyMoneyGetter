@@ -75,6 +75,11 @@
             android:layout="@layout/preference_checkbox"
             android:summary="@string/help_hint"
             android:title="@string/help_and_feedback" />
+        <Preference
+            android:key="pref_etc_shared"
+            android:layout="@layout/preference_checkbox"
+            android:summary="@string/shared_app_hint"
+            android:title="@string/shared_app"/>
     </PreferenceCategory>
 
 

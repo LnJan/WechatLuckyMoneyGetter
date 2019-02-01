@@ -1,6 +1,8 @@
 package com.shareder.ln_jan.wechatluckymoneygetter.fragments;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -85,6 +87,8 @@ public class SettingPreferenceFragment extends PreferenceFragment implements
             Intent intent = new Intent(Intent.ACTION_VIEW,
                     Uri.parse(MY_GITHUB_ISSUES_URL));
             startActivity(intent);
+        } else if (preference.getKey().equals("pref_etc_shared")) {
+            clipDownloadLink();
         } else {
             return false;
         }
@@ -190,6 +194,21 @@ public class SettingPreferenceFragment extends PreferenceFragment implements
         return true;
     }
 
+    /**
+     * 把下载链接复制到剪切板中
+     */
+    private void clipDownloadLink() {
+        ClipboardManager clipboardManager = (ClipboardManager) this.getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboardManager != null) {
+            //创建ClipData对象
+            ClipData clipData = ClipData.newPlainText(getString(R.string.app_name),
+                    getString(R.string.baidu_downlaod_link));
+            //添加ClipData对象到剪切板中
+            clipboardManager.setPrimaryClip(clipData);
+            Toast.makeText(this.getActivity(), "下载链接已复制到剪切板中", Toast.LENGTH_LONG).show();
+        }
+    }
+
     //打开通知监听设置页面
     public void openNotificationListenSettings() {
         try {
@@ -284,6 +303,10 @@ public class SettingPreferenceFragment extends PreferenceFragment implements
         Preference issuesPref = findPreference("pref_etc_issue");
         if (issuesPref != null) {
             issuesPref.setOnPreferenceClickListener(this);
+        }
+        Preference sharedPref = findPreference("pref_etc_shared");
+        if (sharedPref != null) {
+            sharedPref.setOnPreferenceClickListener(this);
         }
 
     }
