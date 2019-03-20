@@ -19,6 +19,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationManagerCompat;
 import android.widget.Toast;
 
+import com.shareder.ln_jan.wechatluckymoneygetter.BuildConfig;
 import com.shareder.ln_jan.wechatluckymoneygetter.R;
 import com.shareder.ln_jan.wechatluckymoneygetter.global.MyTransparentDialog;
 import com.shareder.ln_jan.wechatluckymoneygetter.service.HongbaoNotificationListenerService;
@@ -309,6 +310,10 @@ public class SettingPreferenceFragment extends PreferenceFragment implements
             sharedPref.setOnPreferenceClickListener(this);
         }
 
+        Preference versionNamePref=findPreference("pref_version_name");
+        if(versionNamePref!=null){
+            versionNamePref.setSummary("软件版本号：v"+ BuildConfig.VERSION_NAME);
+        }
     }
 
 }

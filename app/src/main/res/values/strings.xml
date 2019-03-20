@@ -44,4 +44,6 @@
     <string name="tips_sound_summary">锁屏状态下播报语音提示[红包来了]</string>
     <string name="notification_tips">开启通知读取权限用于监听红包信息</string>
     <string name="baidu_downlaod_link">[微信红包工具]一款开源的红包插件，绿色安全，让您不错过身边每个红包！欢迎下载：https://pan.baidu.com/s/1d_r_GB5DawHFKVKMxuyARQ</string>
+    <string name="application_info">应用信息</string>
+    <string name="version_name_tips">版本号</string>
 </resources>

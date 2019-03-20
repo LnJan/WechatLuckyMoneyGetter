@@ -93,4 +93,12 @@
             android:summary="@string/snatch_on_lockscreen_hint"
             android:title="@string/snatch_on_lockscreen" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/preference_category"
+        android:title="@string/application_info">
+        <Preference
+            android:key="pref_version_name"
+            android:title="@string/version_name_tips"/>
+    </PreferenceCategory>
 </PreferenceScreen>
