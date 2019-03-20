@@ -15,3 +15,6 @@
 2、使用NotificationListenerService监听通知栏消息，效率更高。解决Android9.0上AccessibilityService无法接收消息通知的问题<br>
 3、加入腾讯热更新框架<br>
 4、修复部分可能导致软件崩溃的问题<br>
+### v1.1.9(2019.02.01)
+1、利用OpenCv图像识别技术辅助识别拆红包时[开]按钮的位置，解决不同DPI的机型位置不同的问题<br>
+2、增加软件分享下载链接的功能<br>
