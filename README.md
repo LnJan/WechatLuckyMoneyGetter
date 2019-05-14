@@ -1,9 +1,9 @@
 # WechatLuckyMoneyGetter
-一个微信红包自动点击工具，免root，支持微信7.0.0，自动检测并且拆开红包。<br>
+一个微信红包自动点击工具，免root，支持微信7.0.4，自动检测并且拆开红包。<br>
 目前仅支持中文，前往[Release](https://github.com/LnJan/WechatLuckyMoneyGetter/releases)下载最新版本。已下载用户会直接推送新版本。<br>
 
 ## 特点
-### ● 适配最新版本微信7.0.0
+### ● 适配最新版本微信7.0.4
 随着微信版本的更新，微信团队也在不断封杀传统的免root抢红包工具，目前基于AccessibilityService的红包工具部分功能已不再适用。
 在AccessibilityService基础上加入Opencv特征识别来识别微信红包的特征信息来解决此问题
 ### ● 红包识别更加智能
