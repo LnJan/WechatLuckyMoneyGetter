@@ -16,8 +16,8 @@ android {
         applicationId "com.shareder.ln_jan.wechatluckymoneygetter"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 17
-        versionName "1.1.9"
+        versionCode 18
+        versionName "1.1.10"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
             //设置支持的SO库架构

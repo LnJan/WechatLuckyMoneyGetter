@@ -648,7 +648,11 @@ public class HongbaoService extends AccessibilityService {
                     } else if (480 == dpi) {//1080p
                         //path.moveTo(533, 1115);
                         x = 533;
-                        y = 1115;
+                        if (ScreenShotter.getInstance().isNormalScreen()) {
+                            y = 1115;
+                        } else {
+                            y = 1215;
+                        }
                     } else if (440 == dpi) {//1080*2160
                         //path.moveTo(450, 1250);
                         x = 450;
